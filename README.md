@@ -1,4 +1,4 @@
-# Coinche R.O.
+# Coinche GPT
 
 Coinche is a game card.
 
