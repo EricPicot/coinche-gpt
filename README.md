@@ -10,9 +10,9 @@ A round of Coinche could be divided into two distinct parts:
 - Secondly, the players play heigh tricks
 
 For non-French, here are some imilar Games:
-	•	Portugal: Sueca – Trick-taking game with a trump suit and team play.
-	•	England: Whist – Classic trick-taking, though simpler, without bidding; Knaves Dial – A game with a bidding phase and trump suit, more similar to Coinche.
-	•	United States: Pinochle – A complex trick-taking game with trump suits, bidding, and melds, similar to Coinche and Belote.
+- Portugal: Sueca – Trick-taking game with a trump suit and team play.
+- England: Whist – Classic trick-taking, though simpler, without bidding; Knaves Dial – A game with a bidding phase and trump suit, more similar to Coinche.
+- United States: Pinochle – A complex trick-taking game with trump suits, bidding, and melds, similar to Coinche and Belote.
 
 All these games involve strategic thinking, teamwork, and the use of a trump suit, making them appealing to those who enjoy the mechanics of Coinche.
 
