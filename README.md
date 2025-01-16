@@ -8,6 +8,39 @@ A round of Coinche could be divided into two distinct parts:
 - First, given their hand, players propose a contrat (number of points to do + the suit)
 - Secondly, the players play heigh tricks
 
+## Set up
+
+### Creation of a venv:
+
+```bash
+python3 -m venv .venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+### Set up of Reac
+
+```bash
+cd frontend
+npm install
+```
+
+### Set up of open-ai credentials
+
+- create a file called `.env` at the root of the project
+- add the following lines to the file:
+```OPENAI_API_KEY=YOUR_API_KEY```
+
+## Launch the project
+
+In the first terminal, run:
+```python run.py```
+
+In a second terminal, run:
+
+```bash
+cd frontend
+npm start
+```
 
 
 ## Objectif of the project
