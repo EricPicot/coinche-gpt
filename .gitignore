@@ -163,3 +163,17 @@ public/*
 !frontend/public/cards/
 dist/*
 *.ipynb*
+
+
+# Node modules
+node_modules/
+
+# Build directory
+build/
+
+# Environment variables
+.env
+
+# IDE settings
+.vscode/
+.idea/
