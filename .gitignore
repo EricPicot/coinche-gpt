@@ -1,11 +1,9 @@
-.idea
-.env
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 *.venv*
-
+*.venv
 # C extensions
 *.so
 
@@ -29,7 +27,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
+*package-lock.json*
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -116,7 +114,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -145,19 +142,14 @@ cython_debug/
 media
 static
 
-*.h5
-experiments
-reward_prediction/data/
 
 venv/
-node_modules/
 *.pyc
 __pycache__/
 .env
-.DS_Store
 # Ignore node_modules
-node_modules/*
-
+# Ignore node_modules
+node_modules/
 # Ignore build or public folder except for frontend/public/cards/*
 public/*
 !frontend/public/cards/
