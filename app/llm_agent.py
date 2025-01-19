@@ -2,7 +2,7 @@ import openai
 import os
 from dotenv import load_dotenv
 import json
-import time
+from .game_constants import CARD_ORDER, CARD_POINTS
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -19,10 +19,11 @@ def get_partner(player_name):
         "West": "East"
     }
     return partners.get(player_name, "Unknown")
+
 class LLM_Agent:
-    def __init__(self, name, model='gpt-4o-2024-08-06'):
+    def __init__(self, name):
         self.name = name
-        self.model = model
+        self.model = 'gpt-4'
         self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     def get_action(self, game_state):
@@ -94,5 +95,29 @@ class LLM_Agent:
         print("Annonce:", annonce)  # Debug log
 
         print(50*"-")
-        time.sleep(1.5)
+        # time.sleep(1.5)
         return annonce
+
+    def get_card_to_play(self, player_name, player_hand, current_trick, trick_positions, atout_suit):
+        """Détermine quelle carte jouer selon les règles de la coinche"""
+        if not player_hand:
+            raise ValueError("No playable cards")
+
+        # Si on est le premier à jouer
+        if not current_trick:
+            return str(player_hand[0])
+
+        # Sinon, on suit la couleur demandée
+        leading_card = str(current_trick[0])
+        leading_suit = leading_card.split(' of ')[1]
+        
+        # Détermine l'ordre des cartes à utiliser
+        card_order = CARD_ORDER['trump'] if leading_suit == atout_suit else CARD_ORDER['normal']
+        
+        # Trie les cartes jouables par force (en capitalisant la première lettre)
+        sorted_cards = sorted(
+            player_hand,
+            key=lambda c: card_order.index(str(c).split(' of ')[0].capitalize())
+        )
+        
+        return str(sorted_cards[0])

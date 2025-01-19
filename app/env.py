@@ -1,7 +1,9 @@
 import logging
 from .llm_agent import LLM_Agent
 from .deck import Deck
-from .player import Player
+from .player import HumanPlayer, LLMPlayer
+from .game_constants import CARD_VALUES_NORMALIZED, CARD_ORDER  # Ajout de l'import
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -10,14 +12,14 @@ class CoincheEnv:
     Environment for the Coinche game.
     Manages the game state, bidding phase, and interactions with players.
     """
+
     def __init__(self):
-        # Attributs existants
         self.llm_agent = LLM_Agent('LLM_Agent')
         self.players = [
-            Player("South", is_llm=False),  # Human player
-            Player("West", is_llm=True),
-            Player("North", is_llm=True),
-            Player("East", is_llm=True)
+            HumanPlayer("South"),
+            LLMPlayer("West", self.llm_agent),
+            LLMPlayer("North", self.llm_agent),
+            LLMPlayer("East", self.llm_agent)
         ]
         self.deck = Deck()
         self.current_contract = None
@@ -181,38 +183,113 @@ class CoincheEnv:
             'options': options,
             'bidding_phase_over': self.bidding_phase_over
         }
-
-    def play_card(self, player, card):
-        """Mise à jour pour maintenir les positions des cartes"""
-        if player != self.current_player:
-            raise ValueError("Not your turn")
-
-        playable_cards = self.get_playable_cards(player)
-        if card not in playable_cards:
-            raise ValueError("This card cannot be played")
-
-        # Ajouter la carte au pli actuel
-        self.current_trick.append(card)
-        self.trick_positions[player] = card
+    
+    def calculate_trick_points(self, trick_cards):
+        """Calcule les points du pli"""
+        from .game_constants import CARD_POINTS
         
-        # Si le pli est complet (4 cartes)
-        if len(self.current_trick) == 4:
-            self.trick_winner = self.determine_trick_winner()
-            # Réinitialiser pour le prochain pli
-            self.current_trick = []
-            self.trick_positions = {p: None for p in self.trick_positions}
-            self.current_player = self.trick_winner
-            self.trick_starter = self.trick_winner
-        else:
-            # Passer au joueur suivant
-            self.current_player = self.get_next_player(player)
+        total_points = 0
+        for card in trick_cards:
+            value, suit = card.split(' of ')
+            # Convertir en minuscules pour la comparaison
+            value = value.lower()
+            points_table = CARD_POINTS['trump' if suit == self.atout_suit else 'normal']
+            # Utiliser la version minuscule pour la recherche
+            total_points += points_table[value]
+            
+        return total_points
+    
+    def play_card(self, player_name, card_str):
+        """Gère le tour de jeu complet après qu'un joueur a joué"""
+        
+        logging.info(f"Starting play_card with player: {player_name}, card: {card_str}")
+        logging.info(f"Current trick: {self.current_trick}")
+        logging.info(f"Current player: {self.current_player}")
+        
+        try:
+            # Trouver le joueur
+            player = next((p for p in self.players if p.name == player_name), None)
+            if not player:
+                raise ValueError(f"Player {player_name} not found")
 
-        return {
-            'status': 'success',
-            'current_trick': self.get_current_trick(),
-            'trick_winner': self.trick_winner,
-            'next_player': self.current_player
-        }
+            # Vérifier si c'est le bon joueur
+            if player_name != self.current_player:
+                raise ValueError(f"Not your turn. Current player is {self.current_player}")
+
+            # Si c'est un joueur humain, normaliser la carte
+            if not player.is_llm:
+                card_value, card_suit = card_str.split(' of ')
+                if card_value in CARD_VALUES_NORMALIZED:
+                    card_str = f"{CARD_VALUES_NORMALIZED[card_value]} of {card_suit}"
+                else:
+                    card_str = card_str.lower()
+                
+                logging.info(f"Normalized card: {card_str}")
+                
+                # Jouer la carte
+                card = player.play_card(card_str, self.current_trick, self.atout_suit)
+            else:
+                # Pour un LLM, laisser le joueur choisir sa carte
+                card = player.play_card(
+                    current_trick=self.current_trick,
+                    atout_suit=self.atout_suit,
+                    trick_positions=self.trick_positions
+                )
+
+            # Mettre à jour l'état du jeu
+            self.current_trick.append(str(card))
+            self.trick_positions[player_name] = str(card)
+            
+            # Faire jouer les LLM jusqu'au prochain joueur humain
+            next_player = self.get_next_player(player_name)
+            
+            while next_player != 'South' and len(self.current_trick) < 4:
+                llm_player = next(p for p in self.players if p.name == next_player)
+                llm_card = llm_player.play_card(
+                    current_trick=self.current_trick,
+                    atout_suit=self.atout_suit,
+                    trick_positions=self.trick_positions
+                )
+                
+                self.current_trick.append(str(llm_card))
+                self.trick_positions[next_player] = str(llm_card)
+                next_player = self.get_next_player(next_player)
+            
+            # Gérer la fin du pli si nécessaire
+            if len(self.current_trick) == 4:
+                self.trick_winner = self.determine_trick_winner()
+                
+                # Calculer et attribuer les points
+                trick_points = self.calculate_trick_points(self.current_trick)
+                if self.trick_winner in ['North', 'South']:
+                    self.team_points['NS'] += trick_points
+                else:
+                    self.team_points['EW'] += trick_points
+                
+                
+                # Réinitialiser pour le prochain pli
+                self.current_trick = []
+                self.trick_positions = {p: None for p in self.trick_positions}
+                self.current_player = self.trick_winner
+                self.trick_starter = self.trick_winner
+            else:
+                self.current_player = next_player
+
+            return {
+                'status': 'success',
+                'current_trick': self.get_current_trick(),
+                'trick_winner': self.trick_winner,
+                'next_player': self.current_player,
+                'team_points': self.team_points,
+                'players_hands': {
+                    p.name: [str(card) for card in p.hand] 
+                    for p in self.players
+                }
+            }
+
+        except Exception as e:
+            logging.error(f"Error in play_card: {str(e)}")
+            raise
 
     def get_current_trick(self):
         """
@@ -231,7 +308,6 @@ class CoincheEnv:
                 'holder': self.current_contract_holder
             }
         }
-
 
     def resolve_round(self):
         """
@@ -272,8 +348,7 @@ class CoincheEnv:
         """Retourne l'état actuel du jeu"""
         try:
             current_player_obj = next(p for p in self.players if p.name == self.current_player)
-            # Convertir les objets Card en strings
-            playable_cards = [str(card) for card in current_player_obj.hand] if self.current_player == 'South' else []
+            playable_cards = self.get_playable_cards(self.current_player) if self.current_player == 'South' else []
             
             return {
                 'current_trick': [str(card) for card in self.current_trick],
@@ -288,25 +363,68 @@ class CoincheEnv:
                 'trick_count': self.trick_count,
                 'atout_suit': self.atout_suit,
                 'team_points': self.team_points,
+                'last_trick_points': self.last_trick_points if hasattr(self, 'last_trick_points') else 0,
                 'contract': {
                     'value': self.current_contract_value,
                     'holder': self.current_contract_holder
                 }
             }
         except Exception as e:
-            logger.error(f"Error in get_game_state: {str(e)}")
+            logging.error(f"Error in get_game_state: {str(e)}")  # Correction ici
             raise
 
-
-    def get_playable_cards(self, player):
-        """Détermine quelles cartes peuvent être jouées selon les règles de la coinche"""
-        # À implémenter selon les règles de la coinche
-        pass
-
     def determine_trick_winner(self):
-        """Détermine le gagnant du pli actuel"""
-        # À implémenter selon les règles de la coinche
-        pass
+        """Détermine le gagnant du pli selon les règles de la coinche"""
+        from .game_constants import CARD_ORDER
+        
+        if not self.current_trick:
+            return None
+            
+        # Première carte jouée
+        leading_card = self.current_trick[0]
+        leading_suit = leading_card.split(' of ')[1]
+        winning_card = leading_card
+        winning_player = self.trick_starter
+        
+        for player, card in self.trick_positions.items():
+            if card is None:
+                continue
+                
+            card_value, card_suit = card.split(' of ')
+            card_value = card_value.lower()  # Normaliser en minuscules
+            
+            # Si c'est de l'atout
+            if card_suit == self.atout_suit:
+                if winning_card.split(' of ')[1] != self.atout_suit:
+                    winning_card = card
+                    winning_player = player
+                else:
+                    # Comparer les valeurs des atouts
+                    try:
+                        current_rank = CARD_ORDER['trump'].index(card_value)
+                        winning_value = winning_card.split(' of ')[0].lower()  # Normaliser en minuscules
+                        winning_rank = CARD_ORDER['trump'].index(winning_value)
+                        if current_rank < winning_rank:  # Plus petit index = plus forte carte
+                            winning_card = card
+                            winning_player = player
+                    except ValueError as e:
+                        logging.error(f"Error comparing cards: {card_value} vs {winning_value}")
+                        raise ValueError(f"Invalid card value: {e}")
+                        
+            # Si c'est la couleur demandée (pas atout)
+            elif card_suit == leading_suit and winning_card.split(' of ')[1] != self.atout_suit:
+                try:
+                    current_rank = CARD_ORDER['normal'].index(card_value)
+                    winning_value = winning_card.split(' of ')[0].lower()  # Normaliser en minuscules
+                    winning_rank = CARD_ORDER['normal'].index(winning_value)
+                    if current_rank < winning_rank:
+                        winning_card = card
+                        winning_player = player
+                except ValueError as e:
+                    logging.error(f"Error comparing cards: {card_value} vs {winning_value}")
+                    raise ValueError(f"Invalid card value: {e}")
+                    
+        return winning_player
 
     def get_next_player(self, current_player):
         """Retourne le joueur suivant"""
@@ -316,8 +434,18 @@ class CoincheEnv:
 
     def get_playable_cards(self, player):
         """Détermine quelles cartes peuvent être jouées selon les règles de la coinche"""
-        # Pour l'instant, retournons toutes les cartes du joueur
-        # À implémenter selon les règles de la coinche plus tard
-        if player in self.players_hands:
-            return self.players_hands[player]
-        return []
+        # Trouver le joueur dans la liste des joueurs
+        player_obj = next((p for p in self.players if p.name == player), None)
+        if not player_obj:
+            logging.error(f"Player {player} not found")
+            return []
+
+        try:
+            logging.info(f"1. Current trick: {self.current_trick}")
+            logging.info(f"2. Player hand: {[str(card) for card in player_obj.hand]}")
+            playable_cards = player_obj.get_playable_cards(self.current_trick, self.atout_suit)
+            logging.info(f"3. Playable cards: {[str(card) for card in playable_cards]}")
+            return [str(card).lower() for card in playable_cards]  # Assurons-nous que tout est en minuscules
+        except Exception as e:
+            logging.error(f"Error getting playable cards: {str(e)}")
+            return []

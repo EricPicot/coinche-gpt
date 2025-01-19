@@ -121,11 +121,15 @@
 /* Pli actuel */
 .current-trick {
     position: relative;
-    width: 300px; /* Réduit un peu la taille */
+    width: 300px;
     height: 300px;
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+
 .played-card {
     position: absolute;
     width: 100px;
@@ -133,29 +137,28 @@
 }
 
 .position-0 { /* Nord */
-    top: 30px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
 }
 
 .position-1 { /* Est */
     top: 50%;
-    right: 30px;
+    right: 20px;
     transform: translateY(-50%);
 }
 
 .position-2 { /* Sud */
-    bottom: 30px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
 }
 
 .position-3 { /* Ouest */
     top: 50%;
-    left: 30px;
+    left: 20px;
     transform: translateY(-50%);
 }
-
 /* Message du gagnant */
 .trick-winner {
     position: absolute;
@@ -168,3 +171,130 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     z-index: 100;
 } 
+
+.position-north {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.position-south {
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.position-east {
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+}
+
+.position-west {
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+}
+
+.team-points {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 1.2em;
+}
+
+.trick-winner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1.2em;
+    z-index: 100;
+    animation: fadeOut 2s forwards;
+    animation-delay: 2s;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.trick-summary-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.trick-summary-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    min-width: 300px;
+}
+
+.trick-summary-content h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.trick-summary-content p {
+    margin: 10px 0;
+    font-size: 1.1em;
+}
+
+.next-trick-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.3s;
+}
+
+.next-trick-button:hover {
+    background-color: #45a049;
+}
+
+.trick-cards-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 5px;
+}
+
+.trick-card-entry {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.small-card-image {
+    width: 50px;
+    height: auto;
+}
+
+.trick-card-entry span {
+    min-width: 60px;
+    text-align: right;
+    font-weight: bold;
+}
