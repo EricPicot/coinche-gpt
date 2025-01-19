@@ -1,0 +1,170 @@
+.playing-phase {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background-color: #076324;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Style pour les joueurs */
+.player {
+    display: flex;
+    justify-content: center;
+    height: 140px;
+    position: relative;
+}
+
+.player.north {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: -40px; /* Rapproche les cartes */
+}
+
+.player.north .card {
+    margin-left: -40px; /* Réduit l'espacement entre les cartes */
+}
+
+.player.north .card:first-child {
+    margin-left: 0;
+}
+/* Sud */
+.player.south {
+    margin-top: 20px;
+}
+
+/* Conteneur pour Est/Ouest et le pli central */
+/* Conteneur pour Est/Ouest et le pli central */
+.horizontal-players {
+    display: flex;
+    justify-content: center; /* Changé de space-between à center */
+    align-items: center;
+    flex: 1;
+    gap: 50px; /* Espacement fixe entre les éléments */
+    max-height: calc(100vh - 340px);
+}
+
+/* Est et Ouest */
+.player.east, .player.west {
+    width: 140px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Styles des cartes */
+.card-button {
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+    position: relative;
+    margin-left: -60px; /* Chevauchement plus prononcé */
+    height: 140px;
+}
+
+.card-button:first-child {
+    margin-left: 0;
+}
+
+.card-button:not(:disabled):hover {
+    transform: translateY(-20px);
+    z-index: 10;
+}
+
+.card-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.card-image {
+    width: 100px;
+    height: 140px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    object-fit: contain;
+    background-color: white; /* Pour éviter la transparence */
+}
+
+/* Rotations des cartes */
+.rotated {
+    transform: rotate(180deg);
+    margin-left: -60px;
+}
+
+.rotated:first-child {
+    margin-left: 0;
+}
+
+/* Ajustement des cartes rotées pour Est/Ouest */
+.rotated-left {
+    transform: rotate(90deg);
+    margin-top: -60px; /* Réduit l'espacement vertical */
+}
+
+.rotated-right {
+    transform: rotate(-90deg);
+    margin-top: -60px; /* Réduit l'espacement vertical */
+}
+
+.rotated-left:first-child,
+.rotated-right:first-child {
+    margin-top: 0;
+}
+
+/* Pli actuel */
+.current-trick {
+    position: relative;
+    width: 300px; /* Réduit un peu la taille */
+    height: 300px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+.played-card {
+    position: absolute;
+    width: 100px;
+    height: 140px;
+}
+
+.position-0 { /* Nord */
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.position-1 { /* Est */
+    top: 50%;
+    right: 30px;
+    transform: translateY(-50%);
+}
+
+.position-2 { /* Sud */
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.position-3 { /* Ouest */
+    top: 50%;
+    left: 30px;
+    transform: translateY(-50%);
+}
+
+/* Message du gagnant */
+.trick-winner {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+} 

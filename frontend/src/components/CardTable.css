@@ -96,8 +96,6 @@
     border-radius: 5px;
 }
 
-
-
 .rotated {
     transform: rotate(180deg);
 }
@@ -108,4 +106,47 @@
 
 .rotated-right {
     transform: rotate(-0deg);
+}
+
+.card-button {
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+    margin: 0 -15px; /* Pour que les cartes se chevauchent légèrement */
+}
+
+.card-button:hover {
+    transform: translateY(-20px);
+    z-index: 2;
+}
+
+.card-image.hoverable {
+    width: 100px;
+    height: auto;
+    transition: transform 0.2s;
+}
+
+.player.south {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 20px;
+}
+
+/* Ajustement pour que les cartes se chevauchent joliment */
+.player.south .card-button:not(:first-child) {
+    margin-left: -30px;
+}
+
+/* Effet de survol pour montrer la carte entière */
+.player.south .card-button:hover {
+    z-index: 10;
+    transform: translateY(-20px);
+}
+
+/* Animation fluide */
+.player.south .card-button {
+    transition: all 0.3s ease;
 }

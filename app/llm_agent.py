@@ -2,7 +2,7 @@ import openai
 import os
 from dotenv import load_dotenv
 import json
-
+import time
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -61,37 +61,38 @@ class LLM_Agent:
             "\n\n"
             "Your decision should be rational and based on the above rules and considerations. Only provide a single response in the exact format: 'value of suit' (e.g., '80 of hearts') or 'pass'."
         )
-        # print(f"You are the great {player_name}. ")
-        # print(f"Your partner is {get_partner(player_name)}. ")
-        # print(f"Your hand is: {player_hand}. ")
-        # print(f"The current highest contract is {current_contract}, ")
-        # print(f'and the current contract holder is {current_contract_holder}. ')
-        print(prompt)
-        response = self.client.chat.completions.create(model=self.model, 
-                                            messages=[ { "role": "developer", "content": "You are a player in a game of Coinche, a French card game similar to Belote." },
-                                                        { "role": "user", "content": prompt } ], 
-                                            response_format={
-                                                "type": "json_schema",
-                                                "json_schema": {
-                                                    "name": "annonce",
-                                                    "schema": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "annonce": {
-                                                                "description": "the contract you are willing to bet",
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "additionalProperties": False
-                                                    }
-                                                }
-                                            })
+        print(f"You are the great {player_name}. ")
+        print(f"Your partner is {get_partner(player_name)}. ")
+        print(f"Your hand is: {player_hand}. ")
+        print(f"The current highest contract is {current_contract}, ")
+        print(f'and the current contract holder is {current_contract_holder}. ')
+
+        # response = self.client.chat.completions.create(model=self.model, 
+        #                                     messages=[ { "role": "developer", "content": "You are a player in a game of Coinche, a French card game similar to Belote." },
+        #                                                 { "role": "user", "content": prompt } ], 
+        #                                     response_format={
+        #                                         "type": "json_schema",
+        #                                         "json_schema": {
+        #                                             "name": "annonce",
+        #                                             "schema": {
+        #                                                 "type": "object",
+        #                                                 "properties": {
+        #                                                     "annonce": {
+        #                                                         "description": "the contract you are willing to bet",
+        #                                                         "type": "string"
+        #                                                     }
+        #                                                 },
+        #                                                 "additionalProperties": False
+        #                                             }
+        #                                         }
+        #                                     })
         
-        print()
-        annonce = extract_annonce(response.choices[0].message.content)
+        # print()
+        # annonce = extract_annonce(response.choices[0].message.content)
+        annonce = 'pass'
         print()
         print("Annonce:", annonce)  # Debug log
 
         print(50*"-")
-
+        time.sleep(1.5)
         return annonce

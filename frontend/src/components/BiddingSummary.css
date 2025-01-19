@@ -1,0 +1,66 @@
+.bidding-summary {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    min-width: 300px;
+    text-align: center;
+}
+
+.bidding-summary h2 {
+    color: #2c3e50;
+    margin-bottom: 2rem;
+}
+
+.annonces-grid {
+    display: grid;
+    grid-template-areas:
+        ". north ."
+        "west . east"
+        ". south .";
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.player-annonce {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.player-annonce h3 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.player-annonce p {
+    color: #e74c3c;
+    font-weight: bold;
+    margin: 0;
+}
+
+.north { grid-area: north; }
+.west { grid-area: west; }
+.east { grid-area: east; }
+.south { grid-area: south; }
+
+.start-game-button {
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.start-game-button:hover {
+    background-color: #27ae60;
+} 
