@@ -12,11 +12,14 @@ const PlayingPhase = ({ playersHands: initialPlayersHands, currentPlayer }) => {
         playableCards: [],
         trick_positions: {},
         team_points: { NS: 0, EW: 0 },
+        trick_starter: null,  // Ajout
+        atout_suit: null      // Ajout
     });
 
     const [showTrickSummary, setShowTrickSummary] = useState(false);
     const [trickPoints, setTrickPoints] = useState(0);
     const [playersHands, setPlayersHands] = useState(initialPlayersHands);
+    const [lastTrickStarter, setLastTrickStarter] = useState(null);
 
     const getCardImage = (card) => {
         const [value, suit] = card.toLowerCase().split(' of ');
@@ -79,6 +82,10 @@ const PlayingPhase = ({ playersHands: initialPlayersHands, currentPlayer }) => {
                 
                 // Si un nouveau pli vient de se terminer
                 if (gameStateResponse.trick_winner && !showTrickSummary) {
+                    // Stocker le trick_starter actuel avant qu'il ne soit mis à jour
+                    if (gameState.trick_starter) {
+                        setLastTrickStarter(gameState.trick_starter);
+                    }
                     setTrickPoints(gameStateResponse.last_trick_points || 0);
                     setShowTrickSummary(true);
                 }
@@ -91,6 +98,8 @@ const PlayingPhase = ({ playersHands: initialPlayersHands, currentPlayer }) => {
                     playableCards: gameStateResponse.playable_cards || [],
                     trick_positions: gameStateResponse.trick_positions || {},
                     team_points: gameStateResponse.team_points || { NS: 0, EW: 0 },
+                    trick_starter: gameStateResponse.trick_starter,
+                    atout_suit: gameStateResponse.atout_suit
                 }));
 
                 if (gameStateResponse.players_hands) {
@@ -104,17 +113,17 @@ const PlayingPhase = ({ playersHands: initialPlayersHands, currentPlayer }) => {
         fetchGameState();
         const interval = setInterval(fetchGameState, POLLING_INTERVAL);
         return () => clearInterval(interval);
-    }, [currentPlayer, showTrickSummary]);
+    }, [currentPlayer, showTrickSummary, gameState.trick_starter]);
 
     const handleNextTrick = async () => {
         try {
-            console.log('Starting next trick...');  // Ajout de log
+            console.log('Starting next trick...');
             const response = await gameService.nextTrick();
-            console.log('Next trick response:', response);  // Ajout de log
+            console.log('Next trick response:', response);
             
             if (response.status === 'success') {
                 setShowTrickSummary(false);
-                // Mettre à jour l'état du jeu avec les nouvelles données
+                setLastTrickStarter(null); // Réinitialisation
                 setGameState(prevState => ({
                     ...prevState,
                     currentTrick: [],
@@ -127,6 +136,16 @@ const PlayingPhase = ({ playersHands: initialPlayersHands, currentPlayer }) => {
         } catch (error) {
             console.error('Error starting next trick:', error);
         }
+    };
+
+    const getPlayOrder = (startingPlayer) => {
+        const players = ['North', 'East', 'South', 'West'];
+        const startIndex = players.indexOf(startingPlayer);
+        const order = [];
+        for (let i = 0; i < 4; i++) {
+            order.push(players[(startIndex + i) % 4]);
+        }
+        return order;
     };
 
     return (
@@ -217,13 +236,20 @@ const PlayingPhase = ({ playersHands: initialPlayersHands, currentPlayer }) => {
                 </div>
             )}
         {showTrickSummary && (
-                <div className="trick-summary-modal">
-                    <div className="trick-summary-content">
-                        <h2>Résumé du pli</h2>
-                        <div className="trick-cards-summary">
-                            {Object.entries(gameState.trick_positions)
-                                .filter(([_, card]) => card !== null)
-                                .map(([player, card]) => (
+            <div className="trick-summary-modal">
+                <div className="trick-summary-content">
+                    <h2>Résumé du pli</h2>
+                    <div className="trick-info">
+                        <p>Premier joueur du dernier tour: <strong>{lastTrickStarter || 'Non défini'}</strong></p>
+                        <p>Couleur d'atout : <strong>{gameState?.atout_suit || 'Non défini'}</strong></p>
+                </div>
+                    
+                    <div className="trick-cards-summary">
+                        {lastTrickStarter && getPlayOrder(lastTrickStarter)
+                            .map(player => {
+                                const card = gameState.trick_positions[player];
+                                if (!card) return null;
+                                return (
                                     <div key={player} className="trick-card-entry">
                                         <span>{player}: </span>
                                         <img 
@@ -232,24 +258,26 @@ const PlayingPhase = ({ playersHands: initialPlayersHands, currentPlayer }) => {
                                             className="small-card-image"
                                         />
                                     </div>
-                                ))
-                            }
-                        </div>
-                        <p>Gagnant : {gameState.trickWinner}</p>
-                        <p>Points marqués : {trickPoints}</p>
-                        <p>Score total :</p>
-                        <p>NS: {gameState.team_points.NS} points</p>
-                        <p>EW: {gameState.team_points.EW} points</p>
-                        <button 
-                            className="next-trick-button"
-                            onClick={handleNextTrick}
-                        >
-                            Pli suivant
-                        </button>
+                                );
+                            })
+                            .filter(Boolean) // Retire les entrées null
+                        }
                     </div>
+                    <p>Gagnant : {gameState.trickWinner}</p>
+                    <p>Points marqués : {trickPoints}</p>
+                    <p>Score total :</p>
+                    <p>NS: {gameState.team_points.NS} points</p>
+                    <p>EW: {gameState.team_points.EW} points</p>
+                    <button 
+                        className="next-trick-button"
+                        onClick={handleNextTrick}
+                    >
+                        Pli suivant
+                    </button>
                 </div>
-            )}
-        </div>
+            </div>
+        )}
+                </div>
     );
 };
 
