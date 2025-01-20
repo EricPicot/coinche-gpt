@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 import json
 from .game_constants import CARD_ORDER, CARD_POINTS
-
+import time
 load_dotenv()  # Load environment variables from .env file
 
 def extract_annonce(json_string):
@@ -81,10 +81,17 @@ class LLM_Agent:
         
         annonce = response.choices[0].message.content.strip().lower()
         annonce = annonce.replace("'", "").replace('"', "")
-        
+        time.sleep(1.5)
         print("Annonce:", annonce)
         print(50*"-")
-        return annonce
+        try:
+            if int(annonce.split()[0]) > 160:
+                return 'pass' # not allowed to bid greater than 160
+            else:
+                return annonce
+        except:
+            return annonce
+
 
     def get_card_to_play(self, player_name, player_hand, current_trick, trick_positions, atout_suit):
         """Détermine quelle carte jouer selon les règles de la coinche"""

@@ -125,8 +125,12 @@ def play_card():
         # Passer les trick_positions actuelles
         result = env.play_card(
             player_name=player,
-            card_str=card.lower()  # Convertir en minuscules ici
+            card_str=card.lower(),  # Convertir en minuscules ici
         )
+        result.update({
+            'trick_starter': env.trick_starter,
+            'atout_suit': env.atout_suit
+        })
         
         logger.info(f"Card played successfully: {card} by {player}")
         logger.info(f"Current trick after play: {env.current_trick}")

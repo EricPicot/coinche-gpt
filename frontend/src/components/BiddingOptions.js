@@ -7,9 +7,40 @@ const BiddingOptions = ({ player, options, updateAnnonces }) => {
     const [selectedValue, setSelectedValue] = useState(null);
     const [selectedSuit, setSelectedSuit] = useState(null);
     const [biddingPhaseOver, setBiddingPhaseOver] = useState(false);
+    const [currentAnnonces, setCurrentAnnonces] = useState({});  // Ajout
 
     // Extraire les valeurs uniques des options
     const values = [...new Set(options.map(opt => opt.split(' ')[0]))];
+
+    // Fonction pour obtenir les annonces actuelles
+    const fetchCurrentAnnonces = async () => {
+        try {
+            const response = await gameService.getAnnonces();
+            setCurrentAnnonces(response.annonces);
+        } catch (error) {
+            console.error('Error fetching annonces:', error);
+        }
+    };
+
+    // Afficher les annonces dans l'ordre des joueurs
+    const renderAnnonces = () => {
+        const players = ['South', 'West', 'North', 'East'];
+        return (
+            <div className="current-annonces">
+                <h4>Annonces en cours :</h4>
+                <div className="annonces-list">
+                    {players.map(playerName => (
+                        <div key={playerName} className="annonce-entry">
+                            <span className="player-name">{playerName}: </span>
+                            <span className="player-bid">
+                                {currentAnnonces[playerName] || '-'}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
 
     const handleValueSelect = (value) => {
         setSelectedValue(value);
@@ -27,13 +58,13 @@ const BiddingOptions = ({ player, options, updateAnnonces }) => {
         try {
             const bid = `${selectedValue} of ${selectedSuit}`;
             console.log('Sending bid:', { player, bid });
-            // Changé placeBid en sendBid
             const response = await gameService.sendBid(player, bid);
             console.log('Received response:', response);
             setSelectedValue(null);
             setSelectedSuit(null);
             setBiddingPhaseOver(response.bidding_phase_over);
             updateAnnonces(response.annonces, response.bidding_phase_over);
+            await fetchCurrentAnnonces();  // Mettre à jour les annonces après l'envoi
         } catch (error) {
             console.error('Error placing bid:', error);
             setSelectedValue(null);
@@ -43,29 +74,21 @@ const BiddingOptions = ({ player, options, updateAnnonces }) => {
 
     const handlePass = async () => {
         try {
-            console.log('Initiating pass for player:', player);
             const response = await gameService.sendBid(player, 'pass');
-            console.log('Pass response received:', response);
-            
             if (response.status === 'success') {
-                console.log('Pass successful, updating state');
                 setBiddingPhaseOver(response.bidding_phase_over);
                 updateAnnonces(response.annonces, response.bidding_phase_over);
-            } else {
-                console.error('Pass response indicates failure:', response);
+                await fetchCurrentAnnonces();  // Mettre à jour les annonces après le pass
             }
         } catch (error) {
             console.error('Error in handlePass:', error);
-            // Optionnel : ajouter une notification d'erreur pour l'utilisateur
         }
     };
 
-    if (biddingPhaseOver) {
-        return null;
-    }
-
     return (
         <div className="bidding-options">
+            {renderAnnonces()}  {/* Ajout de l'affichage des annonces */}
+            
             <h3>Faites votre annonce</h3>
             
             <div className="bidding-container">

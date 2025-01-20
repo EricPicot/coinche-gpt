@@ -102,7 +102,11 @@ class CoincheEnv:
         """
         if bid != 'pass':
             bid_value = int(bid.split()[0])
-            if ((self.current_contract_value is None or bid_value > self.current_contract_value) 
+            
+            # Vérifier que l'enchère ne dépasse pas 160 points
+            if bid_value > 160:
+                self.annonces[player_name] = 'pass'
+            elif ((self.current_contract_value is None or bid_value > self.current_contract_value) 
                 and (bid.split()[2] in ['hearts', 'spades', 'diamonds', 'clubs'])):
                 self.current_contract_value = bid_value
                 self.current_contract_holder = player_name
@@ -228,6 +232,8 @@ class CoincheEnv:
                 
                 # Jouer la carte
                 card = player.play_card(card_str, self.current_trick, self.atout_suit)
+
+                
             else:
                 # Pour un LLM, laisser le joueur choisir sa carte
                 card = player.play_card(
@@ -235,7 +241,8 @@ class CoincheEnv:
                     atout_suit=self.atout_suit,
                     trick_positions=self.trick_positions
                 )
-
+            if len(self.current_trick) == 0:
+                    self.trick_starter = player_name
             # Mettre à jour l'état du jeu
             self.current_trick.append(str(card))
             self.trick_positions[player_name] = str(card)
@@ -266,10 +273,8 @@ class CoincheEnv:
                 else:
                     self.team_points['EW'] += trick_points
                 
-                
-                # Réinitialiser pour le prochain pli
-                self.current_trick = []
-                self.trick_positions = {p: None for p in self.trick_positions}
+                # Ne pas réinitialiser trick_positions immédiatement
+                # Les positions seront réinitialisées dans handleNextTrick
                 self.current_player = self.trick_winner
                 self.trick_starter = self.trick_winner
             else:
@@ -281,6 +286,8 @@ class CoincheEnv:
                 'trick_winner': self.trick_winner,
                 'next_player': self.current_player,
                 'team_points': self.team_points,
+                'trick_starter': self.trick_starter,  # Toujours renvoyer le trick_starter actuel
+
                 'players_hands': {
                     p.name: [str(card) for card in p.hand] 
                     for p in self.players
