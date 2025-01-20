@@ -48,13 +48,30 @@ export const gameService = {
     },
 
     sendBid: async (player, bid) => {
-        const response = await fetch(`${API_BASE_URL}/bid`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ player, bid }),
-        });
-        if (!response.ok) throw new Error('Failed to send bid');
-        return response.json();
+        try {
+            console.log('Sending bid request:', { player, bid });
+            const response = await fetch(`${API_BASE_URL}/bid`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ player, bid }),
+            });
+            
+            console.log('Bid response status:', response.status);
+            const data = await response.json();
+            console.log('Bid response data:', data);
+            
+            if (!response.ok) {
+                console.error('Bid error:', data);
+                throw new Error(data.error || 'Failed to send bid');
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('Error in sendBid:', error);
+            throw error;
+        }
     },
 
     getGameState: async () => {

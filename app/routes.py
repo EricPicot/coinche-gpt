@@ -50,14 +50,29 @@ def bid():
     """
     Handle a bid from a player.
     """
-    data = request.json
-    player = data['player']
-    bid = data['bid']
-    logger.info("Player: %s", player)
-    logger.info("Bid: %s", bid)
-    env.handle_bidding(player, bid)
-    return jsonify({'status': 'success'})
+    try:
+        data = request.json
+        if not data:
+            logger.error("No JSON data received")
+            return jsonify({'error': 'No data provided'}), 400
+            
+        player = data.get('player')
+        bid = data.get('bid')
+        
+        logger.info(f"Received bid request - Player: {player}, Bid: {bid}")
+        
+        if not player or not bid:
+            logger.error(f"Missing data - Player: {player}, Bid: {bid}")
+            return jsonify({'error': 'Player and bid are required'}), 400
 
+        env.handle_bidding(player, bid)
+        
+        logger.info(f"Bid processed successfully - Current contract: {env.current_contract}")
+        return jsonify({'status': 'success'})
+        
+    except Exception as e:
+        logger.error(f"Error in bid endpoint: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @main.route('/get_bidding_options', methods=['GET'])
 def get_bidding_options():

@@ -43,14 +43,20 @@ const BiddingOptions = ({ player, options, updateAnnonces }) => {
 
     const handlePass = async () => {
         try {
-            console.log('Sending pass for player:', player);
-            // Changé placeBid en sendBid
+            console.log('Initiating pass for player:', player);
             const response = await gameService.sendBid(player, 'pass');
-            console.log('Received pass response:', response);
-            setBiddingPhaseOver(response.bidding_phase_over);
-            updateAnnonces(response.annonces, response.bidding_phase_over);
+            console.log('Pass response received:', response);
+            
+            if (response.status === 'success') {
+                console.log('Pass successful, updating state');
+                setBiddingPhaseOver(response.bidding_phase_over);
+                updateAnnonces(response.annonces, response.bidding_phase_over);
+            } else {
+                console.error('Pass response indicates failure:', response);
+            }
         } catch (error) {
-            console.error('Error passing:', error);
+            console.error('Error in handlePass:', error);
+            // Optionnel : ajouter une notification d'erreur pour l'utilisateur
         }
     };
 

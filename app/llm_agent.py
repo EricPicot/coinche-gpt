@@ -62,40 +62,28 @@ class LLM_Agent:
             "\n\n"
             "Your decision should be rational and based on the above rules and considerations. Only provide a single response in the exact format: 'value of suit' (e.g., '80 of hearts') or 'pass'."
         )
+        
         print(f"You are the great {player_name}. ")
         print(f"Your partner is {get_partner(player_name)}. ")
         print(f"Your hand is: {player_hand}. ")
         print(f"The current highest contract is {current_contract}, ")
         print(f'and the current contract holder is {current_contract_holder}. ')
 
-        # response = self.client.chat.completions.create(model=self.model, 
-        #                                     messages=[ { "role": "developer", "content": "You are a player in a game of Coinche, a French card game similar to Belote." },
-        #                                                 { "role": "user", "content": prompt } ], 
-        #                                     response_format={
-        #                                         "type": "json_schema",
-        #                                         "json_schema": {
-        #                                             "name": "annonce",
-        #                                             "schema": {
-        #                                                 "type": "object",
-        #                                                 "properties": {
-        #                                                     "annonce": {
-        #                                                         "description": "the contract you are willing to bet",
-        #                                                         "type": "string"
-        #                                                     }
-        #                                                 },
-        #                                                 "additionalProperties": False
-        #                                             }
-        #                                         }
-        #                                     })
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": "You are a player in a game of Coinche, a French card game similar to Belote."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=50
+        )
         
-        # print()
-        # annonce = extract_annonce(response.choices[0].message.content)
-        annonce = 'pass'
-        print()
-        print("Annonce:", annonce)  # Debug log
-
+        annonce = response.choices[0].message.content.strip().lower()
+        annonce = annonce.replace("'", "").replace('"', "")
+        
+        print("Annonce:", annonce)
         print(50*"-")
-        # time.sleep(1.5)
         return annonce
 
     def get_card_to_play(self, player_name, player_hand, current_trick, trick_positions, atout_suit):
@@ -120,4 +108,5 @@ class LLM_Agent:
             key=lambda c: card_order.index(str(c).split(' of ')[0].capitalize())
         )
         
+        time.sleep(1.5)
         return str(sorted_cards[0])
